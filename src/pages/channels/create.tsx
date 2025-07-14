@@ -22,6 +22,7 @@ const CreateChannelPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
+  const fromStepper = router.query.fromStepper === '1';
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
@@ -56,7 +57,13 @@ const CreateChannelPage: React.FC = () => {
       });
       setSuccess('Channel created successfully!');
       setChannel({ name: '', code: '', description: '' });
-      setTimeout(() => router.push('/channels'), 1000);
+      setTimeout(() => {
+        if (fromStepper) {
+          router.push('/frameworks/manage');
+        } else {
+          router.push('/channels');
+        }
+      }, 1000);
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
       else setError('Failed to create channel');

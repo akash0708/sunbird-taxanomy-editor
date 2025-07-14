@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import { useRouter } from 'next/router';
 
 // This component renders a step in the taxonomy management process where the user selects a channel.
 // It fetches available channels from the store, displays them in a dropdown,
@@ -18,10 +19,14 @@ const StepChannel: React.FC = () => {
 
   // Use normalizeChannels to ensure code property exists for selection
   const mappedChannels = normalizeChannels(channels);
-  const dropdownOptions = mappedChannels.map((ch) => ({
-    label: `${ch.name} (${ch.code})`,
-    value: ch.code ?? ch.identifier,
-  }));
+  const dropdownOptions = [
+    ...mappedChannels.map((ch) => ({
+      label: `${ch.name} (${ch.code})`,
+      value: ch.code ?? ch.identifier,
+    })),
+    { label: 'Create New Channel', value: '__create__' },
+  ];
+  const router = useRouter();
 
   React.useEffect(() => {
     fetchChannels();
@@ -61,6 +66,10 @@ const StepChannel: React.FC = () => {
             label="Select Channel"
             value={channel?.code || ''}
             onChange={(value) => {
+              if (value === '__create__') {
+                router.push('/channels/create?fromStepper=1');
+                return;
+              }
               const selected = mappedChannels.find((ch) => ch.code === value);
               if (selected) setChannel(selected);
             }}

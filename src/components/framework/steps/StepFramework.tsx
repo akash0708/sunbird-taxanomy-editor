@@ -6,9 +6,7 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import NoData from '../NoData';
-import Button from '@mui/material/Button';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 // This component renders a step in the taxonomy management process where the user selects a framework.
 // It fetches available frameworks from the store, filters them based on the selected channel, and displays them in a dropdown. The selected framework is stored in the framework form state.
@@ -17,6 +15,7 @@ const StepFramework: React.FC = () => {
   const setFramework = useFrameworkFormStore((state) => state.setFramework);
   const channel = useFrameworkFormStore((state) => state.channel);
   const { frameworks, loading, error, fetchFrameworks } = useFrameworksStore();
+  const router = useRouter();
 
   // Filter frameworks to only those belonging to the selected channel
   const filteredFrameworks = React.useMemo(() => {
@@ -26,10 +25,13 @@ const StepFramework: React.FC = () => {
     );
   }, [frameworks, channel]);
 
-  const dropdownOptions = filteredFrameworks.map((fw) => ({
-    label: `${fw.name} (${fw.code})`,
-    value: fw.code,
-  }));
+  const dropdownOptions = [
+    ...filteredFrameworks.map((fw) => ({
+      label: `${fw.name} (${fw.code})`,
+      value: fw.code,
+    })),
+    { label: 'Create New Framework', value: '__create__' },
+  ];
 
   React.useEffect(() => {
     fetchFrameworks();
@@ -63,39 +65,26 @@ const StepFramework: React.FC = () => {
         <Alert severity="error" sx={{ textAlign: 'center', py: 2 }}>
           {error}
         </Alert>
-      ) : filteredFrameworks.length === 0 && channel ? (
-        <Box maxWidth={400} py={2}>
-          <NoData message="No frameworks found for the selected channel." />
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            mb={2}
-            sx={{ textAlign: 'left', mt: 0, ml: 0.5 }}
-          >
-            You can create a new framework for this channel.
-          </Typography>
-          <Link href="/frameworks/create?fromStepper=1" passHref>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{
-                mt: 1,
-                textAlign: 'left',
-                borderRadius: 2,
-                px: 3,
-                fontWeight: 600,
-              }}
-            >
-              Create New Framework
-            </Button>
-          </Link>
-        </Box>
       ) : (
         <Box maxWidth={400}>
           <Dropdown
             label="Select Framework"
             value={framework?.code || ''}
-            onChange={(value) => {
+            onChange={(value: string) => {
+              if (value === '__create__') {
+                if (channel) {
+                  const params = new URLSearchParams({
+                    fromStepper: '1',
+                    channelId: channel.identifier,
+                    channelName: channel.name,
+                    channelCode: channel.code || '',
+                  });
+                  router.push(`/frameworks/create?${params.toString()}`);
+                } else {
+                  router.push('/frameworks/create?fromStepper=1');
+                }
+                return;
+              }
               const selected = filteredFrameworks.find(
                 (fw) => fw.code === value
               );
