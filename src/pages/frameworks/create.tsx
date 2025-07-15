@@ -37,6 +37,14 @@ const CreateFrameworkPage: React.FC = () => {
     fetchChannels();
   }, [fetchChannels]);
 
+  // Pre-select channel if passed via query params
+  useEffect(() => {
+    const channelId = router.query.channelId as string | undefined;
+    if (channelId && !selectedChannel) {
+      setSelectedChannel(channelId);
+    }
+  }, [router.query.channelId, selectedChannel]);
+
   // Handle changes to the framework name input
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;

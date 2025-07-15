@@ -55,7 +55,22 @@ const Dropdown: React.FC<DropdownProps> = ({
       </MenuItem>
       {options.map((opt) => (
         <MenuItem key={opt.value} value={opt.value} sx={{ px: 2, py: 1.2 }}>
-          {opt.label}
+          {opt.value === '__create__' ? (
+            <Box
+              sx={{
+                bgcolor: '#686CFD',
+                color: '#fff',
+                borderRadius: 2,
+                p: 1,
+                textAlign: 'center',
+                width: '100%',
+              }}
+            >
+              {opt.label}
+            </Box>
+          ) : (
+            opt.label
+          )}
         </MenuItem>
       ))}
     </Select>

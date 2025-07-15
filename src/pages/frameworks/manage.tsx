@@ -29,7 +29,6 @@ import StepAssociation from '@/components/framework/steps/StepAssociation';
 import Box from '@mui/material/Box';
 import type { StepAssociationHandle } from '@/interfaces/AssociationInterface';
 import StepView from '@/components/framework/steps/StepView';
-import { Framework } from '@/interfaces/FrameworkInterface';
 import StepperButton from '@/components/framework/StepperButton';
 
 // This component manages the taxonomy creation process through a series of steps.
@@ -127,6 +126,17 @@ const ManageTaxonomy: React.FC = () => {
         case 6:
           break;
         case 7:
+          // Before navigating to the View step, fetch latest framework details
+          if (framework?.identifier) {
+            const result = await fetchAndUpdateFramework();
+            if (!result.success) {
+              setFetchError(
+                result.error || 'Failed to fetch framework details'
+              );
+              setIsLoading(false);
+              return;
+            }
+          }
           router.push('/frameworks');
           return;
       }
@@ -239,11 +249,7 @@ const ManageTaxonomy: React.FC = () => {
               {step === 5 && <StepTerms ref={termsRef} />}
               {step === 6 && <StepAssociation ref={associationRef} />}
               {step === 7 && framework?.code && (
-                <StepView
-                  frameworkCode={framework.code}
-                  framework={framework as Framework}
-                  categories={useFrameworkFormStore.getState().categories}
-                />
+                <StepView frameworkCode={framework.code} />
               )}
             </CardContent>
             <CardActions
