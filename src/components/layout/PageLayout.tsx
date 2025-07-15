@@ -16,8 +16,6 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     setMobileOpen((prev) => !prev);
   };
 
-  const drawerWidth = 260; // Import or define drawerWidth here
-
   return (
     <Box
       sx={{
@@ -36,7 +34,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          ml: { lg: `${drawerWidth}px` }, // Add marginLeft for desktop sidebar
+          ml: { lg: 'var(--sidebar-width, 260px)' }, // Use CSS variable for sidebar width
         }}
       >
         <Header onMobileMenuClick={handleDrawerToggle} />
