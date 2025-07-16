@@ -37,14 +37,6 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               fullWidth
               sx={{
                 justifyContent: 'flex-start',
-                background:
-                  selectedAvailableCategoryCode === cat.code
-                    ? '#f5f7ff'
-                    : undefined,
-                color:
-                  selectedAvailableCategoryCode === cat.code
-                    ? '#5b47fa'
-                    : undefined,
               }}
             >
               {cat.name}
