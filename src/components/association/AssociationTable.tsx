@@ -107,7 +107,7 @@ const AssociationTable: React.FC<AssociationTableProps> = ({
                       onChange={(e) =>
                         onSelectAll && onSelectAll(e.target.checked)
                       }
-                      inputProps={{ 'aria-label': 'select all associations' }}
+                      aria-label="select all associations"
                     />
                   </TableCell>
                 )}
@@ -147,9 +147,7 @@ const AssociationTable: React.FC<AssociationTableProps> = ({
                           onChange={() =>
                             onSelectRow && onSelectRow(term.identifier)
                           }
-                          inputProps={{
-                            'aria-label': `select association ${term.name}`,
-                          }}
+                          aria-label={`select association ${term.name}`}
                         />
                       </TableCell>
                     )}
