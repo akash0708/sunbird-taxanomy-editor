@@ -22,6 +22,151 @@ import { SidebarProps } from '@/interfaces/LayoutInterface';
 const expandedWidth = 260;
 const collapsedWidth = 64;
 
+// Component for navigation items
+const NavItem: React.FC<{
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  collapsed: boolean;
+  onMobileClose: () => void;
+}> = ({ href, label, icon, isActive, collapsed, onMobileClose }) => (
+  <ListItem disablePadding>
+    <ListItemButton
+      component={NextLink}
+      href={href}
+      selected={isActive}
+      onClick={onMobileClose}
+      sx={{
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        px: collapsed ? 1 : 2,
+      }}
+    >
+      <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
+        {icon}
+      </ListItemIcon>
+      {!collapsed && <ListItemText primary={label} sx={{ ml: 1.5 }} />}
+    </ListItemButton>
+  </ListItem>
+);
+
+// Component for collapsible sections
+const CollapsibleSection: React.FC<{
+  title: string;
+  icon: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
+  collapsed: boolean;
+  children: React.ReactNode;
+}> = ({ title, icon, isOpen, onToggle, collapsed, children }) => (
+  <>
+    <ListItemButton
+      onClick={onToggle}
+      sx={{
+        mt: 1,
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        px: collapsed ? 1 : 2,
+      }}
+    >
+      <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
+        {icon}
+      </ListItemIcon>
+      {!collapsed && <ListItemText primary={title} sx={{ ml: 1.5 }} />}
+      {!collapsed && (isOpen ? <ExpandLess /> : <ExpandMore />)}
+    </ListItemButton>
+    <Collapse in={isOpen && !collapsed} timeout="auto" unmountOnExit>
+      <List component="div" disablePadding sx={{ pl: 4 }}>
+        {children}
+      </List>
+    </Collapse>
+  </>
+);
+
+// Component for sidebar header
+const SidebarHeader: React.FC<{ collapsed: boolean }> = ({ collapsed }) => (
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      height: 56,
+      px: collapsed ? 1 : 2,
+      borderBottom: 1,
+      borderColor: 'divider',
+      justifyContent: collapsed ? 'center' : 'flex-start',
+    }}
+  >
+    <LayersIcon sx={{ color: 'primary.main', mr: collapsed ? 0 : 1 }} />
+    {!collapsed && (
+      <Typography variant="h6" fontWeight={600} color="primary.main">
+        Taxonomy Editor
+      </Typography>
+    )}
+  </Box>
+);
+
+// Component for collapse toggle
+const CollapseToggle: React.FC<{
+  collapsed: boolean;
+  onToggle: () => void;
+}> = ({ collapsed, onToggle }) => (
+  <Box
+    sx={{
+      display: { xs: 'none', lg: 'flex' },
+      justifyContent: 'center',
+      py: 0,
+      mt: 'auto',
+    }}
+  >
+    <Box
+      onClick={onToggle}
+      sx={{
+        width: '100%',
+        cursor: 'pointer',
+        bgcolor: 'primary.main',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 48,
+        transition: 'background 0.2s',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        fontWeight: 600,
+        fontSize: 16,
+        letterSpacing: 0.5,
+        '&:hover': {
+          bgcolor: 'primary.dark',
+        },
+      }}
+    >
+      {collapsed ? (
+        <ChevronRightIcon sx={{ color: '#fff' }} />
+      ) : (
+        <ChevronLeftIcon sx={{ color: '#fff' }} />
+      )}
+    </Box>
+  </Box>
+);
+
+// Component for submenu items
+const SubMenuItem: React.FC<{
+  href: string;
+  label: string;
+  isActive: boolean;
+  onMobileClose: () => void;
+}> = ({ href, label, isActive, onMobileClose }) => (
+  <ListItem disablePadding>
+    <ListItemButton
+      component={NextLink}
+      href={href}
+      selected={isActive}
+      onClick={onMobileClose}
+    >
+      <ListItemText primary={label} />
+    </ListItemButton>
+  </ListItem>
+);
+
 // This component renders the sidebar for the application.
 // It includes navigation links for Dashboard, Channels, and Frameworks.
 const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
@@ -47,180 +192,74 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          height: 56,
-          px: collapsed ? 1 : 2,
-          borderBottom: 1,
-          borderColor: 'divider',
-          justifyContent: collapsed ? 'center' : 'flex-start',
-        }}
-      >
-        <LayersIcon sx={{ color: 'primary.main', mr: collapsed ? 0 : 1 }} />
-        {!collapsed && (
-          <Typography variant="h6" fontWeight={600} color="primary.main">
-            Taxonomy Editor
-          </Typography>
-        )}
-      </Box>
+      <SidebarHeader collapsed={collapsed} />
+
       <List sx={{ pt: 2 }}>
-        <ListItem disablePadding>
-          <ListItemButton
-            component={NextLink}
-            href="/"
-            selected={isActive('/')}
-            onClick={onMobileClose}
-            sx={{
-              justifyContent: collapsed ? 'center' : 'flex-start',
-              px: collapsed ? 1 : 2,
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
-              <DashboardIcon color={isActive('/') ? 'primary' : 'inherit'} />
-            </ListItemIcon>
-            {!collapsed && (
-              <ListItemText primary="Dashboard" sx={{ ml: 1.5 }} />
-            )}
-          </ListItemButton>
-        </ListItem>
-        <ListItemButton
-          onClick={handleChannelsClick}
-          sx={{
-            mt: 1,
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            px: collapsed ? 1 : 2,
-          }}
+        <NavItem
+          href="/"
+          label="Dashboard"
+          icon={<DashboardIcon color={isActive('/') ? 'primary' : 'inherit'} />}
+          isActive={isActive('/')}
+          collapsed={collapsed}
+          onMobileClose={onMobileClose}
+        />
+
+        <CollapsibleSection
+          title="Channels"
+          icon={<LayersIcon color={openChannels ? 'primary' : 'inherit'} />}
+          isOpen={openChannels}
+          onToggle={handleChannelsClick}
+          collapsed={collapsed}
         >
-          <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
-            <LayersIcon color={openChannels ? 'primary' : 'inherit'} />
-          </ListItemIcon>
-          {!collapsed && <ListItemText primary="Channels" sx={{ ml: 1.5 }} />}
-          {!collapsed && (openChannels ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-        <Collapse in={openChannels && !collapsed} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding sx={{ pl: 4 }}>
-            <ListItem disablePadding>
-              <ListItemButton
-                component={NextLink}
-                href="/channels/create"
-                selected={isActive('/channels/create')}
-                onClick={onMobileClose}
-              >
-                <ListItemText primary="Create New Channel" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton
-                component={NextLink}
-                href="/channels"
-                selected={isActive('/channels')}
-                onClick={onMobileClose}
-              >
-                <ListItemText primary="View All Channels" />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Collapse>
-        <ListItemButton
-          onClick={handleFrameworksClick}
-          sx={{
-            mt: 1,
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            px: collapsed ? 1 : 2,
-          }}
+          <SubMenuItem
+            href="/channels/create"
+            label="Create New Channel"
+            isActive={isActive('/channels/create')}
+            onMobileClose={onMobileClose}
+          />
+          <SubMenuItem
+            href="/channels"
+            label="View All Channels"
+            isActive={isActive('/channels')}
+            onMobileClose={onMobileClose}
+          />
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Frameworks"
+          icon={<LayersIcon color={openFrameworks ? 'primary' : 'inherit'} />}
+          isOpen={openFrameworks}
+          onToggle={handleFrameworksClick}
+          collapsed={collapsed}
         >
-          <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
-            <LayersIcon color={openFrameworks ? 'primary' : 'inherit'} />
-          </ListItemIcon>
-          {!collapsed && <ListItemText primary="Frameworks" sx={{ ml: 1.5 }} />}
-          {!collapsed && (openFrameworks ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-        <Collapse
-          in={openFrameworks && !collapsed}
-          timeout="auto"
-          unmountOnExit
-        >
-          <List component="div" disablePadding sx={{ pl: 4 }}>
-            <ListItem disablePadding>
-              <ListItemButton
-                component={NextLink}
-                href="/frameworks/create"
-                selected={isActive('/frameworks/create')}
-                onClick={onMobileClose}
-              >
-                <ListItemText primary="Create New Framework" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton
-                component={NextLink}
-                href="/frameworks"
-                selected={isActive('/frameworks')}
-                onClick={onMobileClose}
-              >
-                <ListItemText primary="View All Frameworks" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton
-                component={NextLink}
-                href="/frameworks/manage"
-                selected={isActive('/frameworks/manage')}
-                onClick={onMobileClose}
-              >
-                <ListItemText primary="Manage Taxonomy" />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Collapse>
+          <SubMenuItem
+            href="/frameworks/create"
+            label="Create New Framework"
+            isActive={isActive('/frameworks/create')}
+            onMobileClose={onMobileClose}
+          />
+          <SubMenuItem
+            href="/frameworks"
+            label="View All Frameworks"
+            isActive={isActive('/frameworks')}
+            onMobileClose={onMobileClose}
+          />
+          <SubMenuItem
+            href="/frameworks/manage"
+            label="Manage Taxonomy"
+            isActive={isActive('/frameworks/manage')}
+            onMobileClose={onMobileClose}
+          />
+        </CollapsibleSection>
       </List>
+
       <Box sx={{ flexGrow: 1 }} />
-      {/* Collapse/Expand toggle button (desktop only) */}
-      <Box
-        sx={{
-          display: { xs: 'none', lg: 'flex' },
-          justifyContent: 'center',
-          py: 0,
-          mt: 'auto',
-        }}
-      >
-        <Box
-          onClick={handleCollapseToggle}
-          sx={{
-            width: '100%',
-            cursor: 'pointer',
-            bgcolor: 'primary.main',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 48,
-            transition: 'background 0.2s',
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            fontWeight: 600,
-            fontSize: 16,
-            letterSpacing: 0.5,
-            '&:hover': {
-              bgcolor: 'primary.dark',
-            },
-          }}
-        >
-          {collapsed ? (
-            <ChevronRightIcon sx={{ color: '#fff' }} />
-          ) : (
-            <ChevronLeftIcon sx={{ color: '#fff' }} />
-          )}
-        </Box>
-      </Box>
+      <CollapseToggle collapsed={collapsed} onToggle={handleCollapseToggle} />
     </Box>
   );
 
   return (
     <>
-      {/* Mobile Drawer */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -236,7 +275,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
       >
         {drawerContent}
       </Drawer>
-      {/* Desktop Drawer */}
+
       <Drawer
         variant="permanent"
         open
@@ -247,7 +286,6 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
             boxSizing: 'border-box',
             transition: 'width 0.2s',
             overflowX: 'hidden',
-            // Removed --sidebar-width from here
           },
         }}
       >
