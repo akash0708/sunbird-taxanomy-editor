@@ -130,22 +130,34 @@ const ChannelsPage: React.FC = () => {
             boxShadow: '0px 2px 8px rgba(0,0,0,0.06)',
           }}
         >
-          {loading ? (
+          {/* Loading state */}
+          {loading && (
             <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
               Loading...
             </Box>
-          ) : error ? (
+          )}
+
+          {/* Error state */}
+          {error && (
             <Box sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>
               {error}
             </Box>
-          ) : filteredChannels.length === 0 ? (
+          )}
+
+          {/* No channels found state */}
+          {!loading && !error && filteredChannels.length === 0 && (
             <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
               No channels found.
             </Box>
-          ) : (
-            filteredChannels.map((channel) => (
-              <ChannelItem key={channel.identifier} channel={channel} />
-            ))
+          )}
+
+          {/* Success state */}
+          {!loading && !error && filteredChannels.length > 0 && (
+            <>
+              {filteredChannels.map((channel) => (
+                <ChannelItem key={channel.identifier} channel={channel} />
+              ))}
+            </>
           )}
         </Card>
       </Box>

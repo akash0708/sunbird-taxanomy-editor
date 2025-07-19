@@ -128,22 +128,37 @@ const FrameworksPage: React.FC = () => {
             boxShadow: '0px 2px 8px rgba(0,0,0,0.06)',
           }}
         >
-          {loading ? (
+          {/* Loading state */}
+          {loading && (
             <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
               Loading...
             </Box>
-          ) : error ? (
+          )}
+
+          {/* Error state */}
+          {error && (
             <Box sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>
               {error}
             </Box>
-          ) : filteredFrameworks.length === 0 ? (
+          )}
+
+          {/* No frameworks found state */}
+          {!loading && !error && filteredFrameworks.length === 0 && (
             <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
               No frameworks found.
             </Box>
-          ) : (
-            filteredFrameworks.map((framework) => (
-              <FrameworkItem key={framework.identifier} framework={framework} />
-            ))
+          )}
+
+          {/* Success state */}
+          {!loading && !error && filteredFrameworks.length > 0 && (
+            <>
+              {filteredFrameworks.map((framework) => (
+                <FrameworkItem
+                  key={framework.identifier}
+                  framework={framework}
+                />
+              ))}
+            </>
           )}
         </Card>
       </Box>

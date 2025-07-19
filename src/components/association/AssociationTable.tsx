@@ -104,9 +104,7 @@ const AssociationTable: React.FC<AssociationTableProps> = ({
                     <Checkbox
                       indeterminate={someSelected}
                       checked={allSelected}
-                      onChange={(e) =>
-                        onSelectAll && onSelectAll(e.target.checked)
-                      }
+                      onChange={(e) => onSelectAll?.(e.target.checked)}
                       aria-label="select all associations"
                     />
                   </TableCell>
@@ -144,9 +142,7 @@ const AssociationTable: React.FC<AssociationTableProps> = ({
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedIds.includes(term.identifier)}
-                          onChange={() =>
-                            onSelectRow && onSelectRow(term.identifier)
-                          }
+                          onChange={() => onSelectRow?.(term.identifier)}
                           aria-label={`select association ${term.name}`}
                         />
                       </TableCell>
@@ -194,7 +190,7 @@ const AssociationTable: React.FC<AssociationTableProps> = ({
                             <IconButton
                               aria-label="edit"
                               size="small"
-                              onClick={() => onEdit && onEdit(term)}
+                              onClick={() => onEdit?.(term)}
                             >
                               <EditIcon fontSize="small" />
                             </IconButton>
@@ -203,7 +199,7 @@ const AssociationTable: React.FC<AssociationTableProps> = ({
                             <IconButton
                               aria-label="delete"
                               size="small"
-                              onClick={() => onDelete && onDelete(term)}
+                              onClick={() => onDelete?.(term)}
                             >
                               <DeleteIcon fontSize="small" />
                             </IconButton>

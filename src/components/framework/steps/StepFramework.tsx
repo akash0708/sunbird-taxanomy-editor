@@ -38,6 +38,25 @@ const StepFramework: React.FC = () => {
     // eslint-disable-next-line
   }, []);
 
+  const handleFrameworkChange = (value: string) => {
+    if (value === '__create__') {
+      if (channel) {
+        const params = new URLSearchParams({
+          fromStepper: '1',
+          channelId: channel.identifier,
+          channelName: channel.name,
+          channelCode: channel.code || '',
+        });
+        router.push(`/frameworks/create?${params.toString()}`);
+      } else {
+        router.push('/frameworks/create?fromStepper=1');
+      }
+      return;
+    }
+    const selected = filteredFrameworks.find((fw) => fw.code === value);
+    if (selected) setFramework(selected);
+  };
+
   return (
     <Box sx={{ p: { xs: 0, md: 1 }, mb: 0 }}>
       <Box mb={3}>
@@ -57,39 +76,28 @@ const StepFramework: React.FC = () => {
           Choose the framework you want to manage or edit.
         </Typography>
       </Box>
-      {loading ? (
+
+      {/* Loading state */}
+      {loading && (
         <Box textAlign="center" py={4}>
           <CircularProgress />
         </Box>
-      ) : error ? (
+      )}
+
+      {/* Error state */}
+      {error && (
         <Alert severity="error" sx={{ textAlign: 'center', py: 2 }}>
           {error}
         </Alert>
-      ) : (
+      )}
+
+      {/* Success state */}
+      {!loading && !error && (
         <Box maxWidth={400}>
           <Dropdown
             label="Select Framework"
             value={framework?.code || ''}
-            onChange={(value: string) => {
-              if (value === '__create__') {
-                if (channel) {
-                  const params = new URLSearchParams({
-                    fromStepper: '1',
-                    channelId: channel.identifier,
-                    channelName: channel.name,
-                    channelCode: channel.code || '',
-                  });
-                  router.push(`/frameworks/create?${params.toString()}`);
-                } else {
-                  router.push('/frameworks/create?fromStepper=1');
-                }
-                return;
-              }
-              const selected = filteredFrameworks.find(
-                (fw) => fw.code === value
-              );
-              if (selected) setFramework(selected);
-            }}
+            onChange={handleFrameworkChange}
             options={dropdownOptions}
             required
           />

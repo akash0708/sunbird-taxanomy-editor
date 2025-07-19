@@ -22,7 +22,7 @@ export function groupAssociationsByCategory(
 ): Category[] {
   const grouped: { [cat: string]: Association[] } = {};
   associations.forEach((assoc) => {
-    if (!assoc || !assoc.category) return;
+    if (!assoc?.category) return;
     if (!grouped[assoc.category]) grouped[assoc.category] = [];
     grouped[assoc.category].push(assoc);
   });

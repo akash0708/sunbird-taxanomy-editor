@@ -77,7 +77,7 @@ export function isCamelCase(input: string): boolean {
 export function autoFillCodeFromName<T extends { name: string; code: string }>(
   obj: T,
   name: string,
-  codeField?: 'code' | string
+  codeField?: string
 ): T {
   const codeKey = codeField || 'code';
   return {

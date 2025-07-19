@@ -100,11 +100,7 @@ const CreateFrameworkPage: React.FC = () => {
         options={channelOptions}
         required
         disabled={channelsLoading}
-        helperText={
-          channelsError
-            ? channelsError
-            : 'Select the channel for this framework'
-        }
+        helperText={channelsError || 'Select the channel for this framework'}
       />
       <Box
         display="grid"

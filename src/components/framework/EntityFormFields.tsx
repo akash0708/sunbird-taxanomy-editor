@@ -43,6 +43,7 @@ const EntityFormFields: React.FC<EntityFormFieldsProps> = ({
   mb = 2,
 }) => {
   if (!fields.length) return null;
+
   return (
     <Box mt={4}>
       <Typography variant="subtitle2" fontSize={16} fontWeight={600} mb={2}>
@@ -52,8 +53,8 @@ const EntityFormFields: React.FC<EntityFormFieldsProps> = ({
         {fields.map((field) =>
           field.type === 'select' && field.options ? (
             <FormControl
-              size={field.size || 'small'}
-              sx={field.sx || { flex: 1, minWidth: 180 }}
+              size={field.size ?? 'small'}
+              sx={field.sx ?? { flex: 1, minWidth: 180 }}
               key={field.name}
             >
               <InputLabel>{field.label}</InputLabel>
@@ -79,8 +80,8 @@ const EntityFormFields: React.FC<EntityFormFieldsProps> = ({
               value={field.value}
               onChange={field.onChange}
               required={field.required}
-              size={field.size || 'small'}
-              sx={field.sx || { flex: 1, minWidth: 180 }}
+              size={field.size ?? 'small'}
+              sx={field.sx ?? { flex: 1, minWidth: 180 }}
               disabled={field.disabled}
               multiline={field.multiline}
               minRows={field.minRows}
