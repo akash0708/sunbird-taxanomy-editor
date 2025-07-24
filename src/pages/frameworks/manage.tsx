@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { ArrowLeft as ArrowLeftIcon } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -9,15 +9,9 @@ import Typography from '@mui/material/Typography';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
-import { useRouter } from 'next/router';
 import PageLayout from '@/components/layout/PageLayout';
 import { StepMasterCategoryHandle } from '@/interfaces/MasterCategoryInterface';
-import StepChannel from '@/components/framework/steps/StepChannel';
-import StepFramework from '@/components/framework/steps/StepFramework';
-import StepMasterCategory from '@/components/framework/steps/StepMasterCategory';
-import StepCategory from '@/components/framework/steps/StepCategory';
 import type { StepCategoryHandle } from '@/interfaces/CategoryInterface';
-import StepTerms from '@/components/framework/steps/StepTerms';
 import type { StepTermsHandle } from '@/interfaces/TermInterface';
 import Alert from '@mui/material/Alert';
 import Dialog from '@mui/material/Dialog';
@@ -25,11 +19,11 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import { useFrameworkFormStore } from '@/store/frameworkFormStore';
-import StepAssociation from '@/components/framework/steps/StepAssociation';
 import Box from '@mui/material/Box';
 import type { StepAssociationHandle } from '@/interfaces/AssociationInterface';
-import StepView from '@/components/framework/steps/StepView';
 import StepperButton from '@/components/framework/StepperButton';
+import { useStepManager } from '@/hooks/useStepManager';
+import StepRenderer from '@/components/framework/StepRenderer';
 
 // This component manages the taxonomy creation process through a series of steps.
 // It allows users to select a channel, framework, master categories, categories, terms, and associations,
@@ -45,123 +39,68 @@ const steps = [
 ];
 
 // Controller for managing the taxonomy creation process.
-// It handles navigation between steps, fetching framework details, and managing unsaved changes.
+// Now uses extracted hook and component for better maintainability.
 const ManageTaxonomy: React.FC = () => {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const { step, setStep, channel, framework, fetchAndUpdateFramework } =
-    useFrameworkFormStore();
+  const { channel, framework } = useFrameworkFormStore();
+
+  // Refs for step components
   const masterCategoryRef = useRef<StepMasterCategoryHandle>(null);
   const categoryRef = useRef<StepCategoryHandle>(null);
   const termsRef = useRef<StepTermsHandle>(null);
   const associationRef = useRef<StepAssociationHandle>(null);
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
-  const handleNext = async () => {
-    setFetchError(null);
-    setIsLoading(true);
-    try {
-      if (step === 3 && masterCategoryRef.current?.hasUnsavedCategoryForm()) {
-        setShowUnsavedDialog(true);
-        setIsLoading(false);
-        return;
-      }
-      if (step === 4 && categoryRef.current?.hasUnsavedCategories()) {
-        setShowUnsavedDialog(true);
-        setIsLoading(false);
-        return;
-      }
-      if (step === 5 && termsRef.current?.hasUnsavedTerms()) {
-        setShowUnsavedDialog(true);
-        setIsLoading(false);
-        return;
-      }
-      if (step === 6 && associationRef.current?.hasUnsavedAssociations()) {
-        setShowUnsavedDialog(true);
-        setIsLoading(false);
-        return;
-      }
-      switch (step) {
-        case 1:
-          break;
-        case 2:
-          if (framework?.identifier) {
-            const result = await fetchAndUpdateFramework();
-            if (!result.success) {
-              setFetchError(
-                result.error || 'Failed to fetch framework details'
-              );
-              setIsLoading(false);
-              return;
-            }
-          }
-          break;
-        case 3:
-          break;
-        case 4:
-          if (framework?.identifier) {
-            const result = await fetchAndUpdateFramework();
-            if (!result.success) {
-              setFetchError(
-                result.error || 'Failed to fetch framework details'
-              );
-              setIsLoading(false);
-              return;
-            }
-          }
-          break;
-        case 5:
-          if (framework?.identifier) {
-            const result = await fetchAndUpdateFramework();
-            if (!result.success) {
-              setFetchError(
-                result.error || 'Failed to fetch framework details'
-              );
-              setIsLoading(false);
-              return;
-            }
-          }
-          break;
-        case 6:
-          break;
-        case 7:
-          // Before navigating to the View step, fetch latest framework details
-          if (framework?.identifier) {
-            const result = await fetchAndUpdateFramework();
-            if (!result.success) {
-              setFetchError(
-                result.error || 'Failed to fetch framework details'
-              );
-              setIsLoading(false);
-              return;
-            }
-          }
-          router.push('/frameworks');
-          return;
-      }
-      if (step < steps.length) setStep(step + 1);
-    } catch (error) {
-      setFetchError('An unexpected error occurred.');
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
+  // All business logic extracted to custom hook
+  const {
+    isLoading,
+    fetchError,
+    showUnsavedDialog,
+    step,
+    handleNext,
+    handleBack,
+    handleDialogCancel,
+    handleDialogNext,
+  } = useStepManager({
+    masterCategoryRef,
+    categoryRef,
+    termsRef,
+    associationRef,
+  });
+
+  // Helper function to get dialog title based on step
+  const getDialogTitle = (currentStep: number): string => {
+    switch (currentStep) {
+      case 3:
+        return 'Unsaved Master Category';
+      case 4:
+        return 'Unsaved Category';
+      case 5:
+        return 'Unsaved Terms';
+      case 6:
+        return 'Unsaved Associations';
+      default:
+        return 'Unsaved Changes';
     }
   };
 
-  const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1);
+  // Helper function to get dialog content based on step
+  const getDialogContent = (currentStep: number): string => {
+    switch (currentStep) {
+      case 3:
+        return 'Are you sure you want to proceed to the next step without creating the new master category?';
+      case 4:
+        return 'Are you sure you want to proceed to the next step without creating the new category?';
+      case 5:
+        return 'Are you sure you want to proceed to the next step without creating the new terms?';
+      case 6:
+        return 'Are you sure you want to proceed to the next step without saving the new associations?';
+      default:
+        return 'Are you sure you want to proceed to the next step without saving your changes?';
     }
   };
 
-  const handleDialogCancel = () => {
-    setShowUnsavedDialog(false);
-  };
-
-  const handleDialogNext = () => {
-    setShowUnsavedDialog(false);
-    setStep(step + 1);
+  // Helper function to determine framework typography margin
+  const getFrameworkMarginTop = (): number => {
+    return channel?.code ? 0.5 : 0;
   };
 
   return (
@@ -225,7 +164,7 @@ const ManageTaxonomy: React.FC = () => {
                       sx={{
                         fontWeight: 400,
                         display: 'block',
-                        mt: channel?.code ? 0.5 : 0,
+                        mt: getFrameworkMarginTop(),
                       }}
                     >
                       Framework: <b>{framework.code}</b>
@@ -242,15 +181,14 @@ const ManageTaxonomy: React.FC = () => {
               }}
             />
             <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-              {step === 1 && <StepChannel />}
-              {step === 2 && <StepFramework />}
-              {step === 3 && <StepMasterCategory ref={masterCategoryRef} />}
-              {step === 4 && <StepCategory ref={categoryRef} />}
-              {step === 5 && <StepTerms ref={termsRef} />}
-              {step === 6 && <StepAssociation ref={associationRef} />}
-              {step === 7 && framework?.code && (
-                <StepView frameworkCode={framework.code} />
-              )}
+              <StepRenderer
+                step={step}
+                framework={framework}
+                masterCategoryRef={masterCategoryRef}
+                categoryRef={categoryRef}
+                termsRef={termsRef}
+                associationRef={associationRef}
+              />
             </CardContent>
             <CardActions
               sx={{
@@ -282,29 +220,9 @@ const ManageTaxonomy: React.FC = () => {
         </div>
       </div>
       <Dialog open={showUnsavedDialog} onClose={handleDialogCancel}>
-        <DialogTitle>
-          {step === 3
-            ? 'Unsaved Master Category'
-            : step === 4
-            ? 'Unsaved Category'
-            : step === 5
-            ? 'Unsaved Terms'
-            : step === 6
-            ? 'Unsaved Associations'
-            : 'Unsaved Changes'}
-        </DialogTitle>
+        <DialogTitle>{getDialogTitle(step)}</DialogTitle>
         <DialogContent>
-          <Typography>
-            {step === 3
-              ? 'Are you sure you want to proceed to the next step without creating the new master category?'
-              : step === 4
-              ? 'Are you sure you want to proceed to the next step without creating the new category?'
-              : step === 5
-              ? 'Are you sure you want to proceed to the next step without creating the new terms?'
-              : step === 6
-              ? 'Are you sure you want to proceed to the next step without saving the new associations?'
-              : 'Are you sure you want to proceed to the next step without saving your changes?'}
-          </Typography>
+          <Typography>{getDialogContent(step)}</Typography>
         </DialogContent>
         <DialogActions>
           <Button

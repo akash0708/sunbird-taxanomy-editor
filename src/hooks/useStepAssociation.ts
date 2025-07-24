@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { useFrameworkFormStore } from '@/store/frameworkFormStore';
-import { batchCreateTermAssociations } from '@/services/associationService';
-import { createTermAssociations } from '@/services/associationService';
+import {
+  createTermAssociations,
+  batchCreateTermAssociations,
+} from '@/services/associationService';
 import type { Term } from '@/interfaces/TermInterface';
 import type { Category } from '@/interfaces/CategoryInterface';
 import type {
@@ -42,7 +44,7 @@ export const useStepAssociation = () => {
         if (!targetCategory) return;
 
         // Get the checked terms from this category
-        const checkedTerms = (targetCategory.terms || []).filter((term) =>
+        const checkedTerms = (targetCategory.terms ?? []).filter((term) =>
           checkedCodes.includes(term.code)
         );
 
@@ -64,6 +66,22 @@ export const useStepAssociation = () => {
     return associations;
   };
 
+  // Helper function to merge associations with deduplication
+  const mergeAssociations = (
+    existing: Association[],
+    incoming: Association[]
+  ): Association[] => {
+    return [
+      ...existing,
+      ...incoming.filter(
+        (a) =>
+          !existing.some(
+            (ea) => ea.code === a.code && ea.category === a.category
+          )
+      ),
+    ];
+  };
+
   // Memoize categories with terms
   const categoriesWithTerms = useMemo(
     () => categories.filter((cat) => (cat.terms?.length ?? 0) > 0),
@@ -72,7 +90,7 @@ export const useStepAssociation = () => {
 
   // State for selected source category and term
   const [selectedCategoryCode, setSelectedCategoryCode] = useState<string>(
-    categoriesWithTerms[0]?.code || ''
+    categoriesWithTerms[0]?.code ?? ''
   );
   const selectedCategory = useMemo(
     () => categoriesWithTerms.find((cat) => cat.code === selectedCategoryCode),
@@ -149,7 +167,7 @@ export const useStepAssociation = () => {
     () =>
       categoriesWithTerms
         .flatMap((cat) =>
-          (cat.terms || []).map((term) => ({
+          (cat.terms ?? []).map((term) => ({
             ...term,
             categoryName: cat.name,
             categoryCode: cat.code,
@@ -196,7 +214,7 @@ export const useStepAssociation = () => {
       // Load existing associations from database only if no current work exists
       const newMap: CheckedTermCodesMap = {};
       availableCategories.forEach((cat) => {
-        newMap[cat.code] = (newTerm.associations || [])
+        newMap[cat.code] = (newTerm.associations ?? [])
           .filter((a) => a.category === cat.code)
           .map((a) => a.code);
       });
@@ -212,7 +230,7 @@ export const useStepAssociation = () => {
   // Toggle checked terms for the current available category
   const handleToggleTerm = (termCode: string) => {
     setCheckedTermCodesMap((prev) => {
-      const prevChecked = prev[selectedAvailableCategoryCode] || [];
+      const prevChecked = prev[selectedAvailableCategoryCode] ?? [];
       return {
         ...prev,
         [selectedAvailableCategoryCode]: prevChecked.includes(termCode)
@@ -226,57 +244,46 @@ export const useStepAssociation = () => {
   const handleSaveAssociations = () => {
     if (!selectedCategory || !selectedTerm) return;
 
-    // Build associations from current checked terms
     const associations = buildAssociationsFromCheckedTerms(
       checkedTermCodesMap,
       categoriesWithTerms
     );
 
-    if (associations.length > 0) {
-      setWorkingAssociationsList((prev) => {
-        // Find if a working association for this term/category already exists
-        const existing = prev.find(
-          (wt) =>
-            wt.code === selectedTerm.code &&
-            wt.categoryCode === selectedCategory.code
-        );
-        if (existing) {
-          // Merge associations, deduplicate by code+category
-          const existingAssocs = Array.isArray(existing.associations)
-            ? existing.associations
-            : [];
-          const merged = [
-            ...existingAssocs,
-            ...associations.filter(
-              (a) =>
-                !existingAssocs.some(
-                  (ea) => ea.code === a.code && ea.category === a.category
-                )
-            ),
-          ];
-          return [
-            ...prev.map((wt) =>
-              wt.code === selectedTerm.code &&
-              wt.categoryCode === selectedCategory.code
-                ? { ...wt, associations: merged }
-                : wt
-            ),
-          ];
-        } else {
-          // Add as new
-          const workingTerm: WorkingAssociation = {
-            ...selectedTerm,
-            categoryCode: selectedCategory.code,
-            categoryName: selectedCategory.name,
-            category: selectedCategory.code,
-            associations,
-          };
-          return [...prev, workingTerm];
-        }
-      });
-      // Clear the checked terms for this term only after adding to working list
-      setCheckedTermCodesMap({});
-    }
+    if (associations.length === 0) return;
+
+    setWorkingAssociationsList((prev) => {
+      const termCode = selectedTerm.code;
+      const categoryCode = selectedCategory.code;
+
+      const existing = prev.find(
+        (wt) => wt.code === termCode && wt.categoryCode === categoryCode
+      );
+
+      if (!existing) {
+        const newAssociation: WorkingAssociation = {
+          ...selectedTerm,
+          categoryCode,
+          categoryName: selectedCategory.name,
+          category: categoryCode,
+          associations,
+        };
+        return [...prev, newAssociation];
+      }
+
+      const existingAssocs = Array.isArray(existing.associations)
+        ? existing.associations
+        : [];
+
+      const merged = mergeAssociations(existingAssocs, associations);
+
+      return prev.map((wt) =>
+        wt.code === termCode && wt.categoryCode === categoryCode
+          ? { ...wt, associations: merged }
+          : wt
+      );
+    });
+
+    setCheckedTermCodesMap({});
   };
 
   // Unified save handler - creates working associations from checked terms and saves all to backend
@@ -343,7 +350,7 @@ export const useStepAssociation = () => {
           fromTermCode: workingTerm.code,
           frameworkCode: framework.code!,
           categoryCode: workingTerm.categoryCode,
-          associations: (workingTerm.associations || []).map((a) => ({
+          associations: (workingTerm.associations ?? []).map((a) => ({
             identifier: a.identifier,
           })),
         };
@@ -357,10 +364,10 @@ export const useStepAssociation = () => {
         (t) => t.code === workingTerm.code
       );
       const existingAssociations = Array.isArray(storeTerm?.associations)
-        ? storeTerm!.associations
+        ? storeTerm.associations
         : [];
       // Merge existing and new associations by identifier (deduplicate)
-      const newAssociations = workingTerm.associations || [];
+      const newAssociations = workingTerm.associations ?? [];
       const mergedAssociationsMap = new Map<string, { identifier: string }>();
       existingAssociations.forEach((a) => {
         if (a.identifier)
@@ -398,7 +405,7 @@ export const useStepAssociation = () => {
             updateTermAssociations(
               categoryIndex,
               termIndex,
-              workingTerm.associations || []
+              workingTerm.associations ?? []
             );
           }
         });
@@ -457,7 +464,7 @@ export const useStepAssociation = () => {
     _assocTerms: Association[]
   ) => {
     // Filter associations for the specific clicked category
-    const categoryAssociations = (term.associations || []).filter(
+    const categoryAssociations = (term.associations ?? []).filter(
       (assoc) => assoc.category === assocCategory?.code
     );
 
@@ -542,10 +549,10 @@ export const useStepAssociation = () => {
     const availableCat = categoriesWithTerms.find(
       (cat) => cat.code !== term.categoryCode
     );
-    setSelectedAvailableCategoryCode(availableCat?.code || '');
+    setSelectedAvailableCategoryCode(availableCat?.code ?? '');
     // Set checkedTermCodesMap to reflect the associations of this term
     const newMap: CheckedTermCodesMap = {};
-    (term.associations || []).forEach((assoc) => {
+    (term.associations ?? []).forEach((assoc) => {
       if (!newMap[assoc.category]) newMap[assoc.category] = [];
       newMap[assoc.category].push(assoc.code);
     });

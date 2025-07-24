@@ -43,16 +43,16 @@ export function useEditTerm({
   // Load term details into form for editing
   const handleEditTerm = (term: Record<string, unknown>) => {
     setForm({
-      name: String(term.name ?? ''),
-      code: String(term.code ?? ''),
-      description: String(term.description ?? ''),
-      label: String(term.label ?? term.name ?? ''),
-      selectedCategory: String(term.categoryCode ?? ''),
+      name: String(term.name),
+      code: String(term.code),
+      description: String(term.description),
+      label: String(term.label ?? term.name),
+      selectedCategory: String(term.categoryCode),
     });
     setEditingTerm({
-      identifier: String(term.identifier ?? ''),
-      code: String(term.code ?? ''),
-      categoryCode: String(term.categoryCode ?? ''),
+      identifier: String(term.identifier),
+      code: String(term.code),
+      categoryCode: String(term.categoryCode),
     });
     setIsEditMode(true);
     setError(null);

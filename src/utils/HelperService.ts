@@ -45,24 +45,15 @@ export function formatDate(date: Date | string) {
 
 // Converts a string to camelCase, removing non-alphanumeric separators and capitalizing the following letter.
 export function camelCaseCode(input: string): string {
-  // If the input contains spaces, use the existing camelCase logic
-  if (/\s/.test(input)) {
-    return input
-      .replace(/[-_\s]+(.)?/g, (_match, chr) => (chr ? chr.toUpperCase() : ''))
-      .replace(/^[A-Z]/, (match) => match.toLowerCase());
-  }
+  const trimmed = input.trim().toLowerCase(); // Lowercase the entire string first
 
-  // If the input is a single word (no spaces)
-  // Check if all letters are uppercase (ignore numbers)
-  const lettersOnly = input.replace(/[^A-Za-z]/g, '');
-  if (lettersOnly && lettersOnly === lettersOnly.toUpperCase()) {
-    return input.toLowerCase();
-  }
-
-  // Otherwise, use the existing camelCase logic
-  return input
-    .replace(/[-_\s]+(.)?/g, (_match, chr) => (chr ? chr.toUpperCase() : ''))
-    .replace(/^[A-Z]/, (match) => match.toLowerCase());
+  return trimmed
+    .split(/[-_\s]+/) // Split on any non-alphanumeric separator
+    .map((word, index) => {
+      if (index === 0) return word; // first word stays lowercase
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join('');
 }
 
 // Checks if a string is in camelCase format
@@ -77,7 +68,7 @@ export function isCamelCase(input: string): boolean {
 export function autoFillCodeFromName<T extends { name: string; code: string }>(
   obj: T,
   name: string,
-  codeField?: 'code' | string
+  codeField?: string
 ): T {
   const codeKey = codeField || 'code';
   return {

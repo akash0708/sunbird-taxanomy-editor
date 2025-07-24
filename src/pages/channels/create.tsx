@@ -93,7 +93,7 @@ const CreateChannelPage: React.FC = () => {
           value={channel.code}
           onChange={(e) => setChannel({ ...channel, code: e.target.value })}
           placeholder="e.g., youthnet-channel"
-          helperText="Code must be unique and use hyphens"
+          helperText="Code must be unique and in camelCase"
           required
           fullWidth
         />

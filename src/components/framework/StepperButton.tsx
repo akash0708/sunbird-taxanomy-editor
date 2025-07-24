@@ -24,6 +24,26 @@ const StepperButton: React.FC<StepperButtonProps> = ({
 }) => {
   const router = useRouter();
 
+  // Helper function to determine button text
+  const getButtonText = () => {
+    if (isLoading) return 'Loading...';
+    if (step < stepsLength) return 'Continue';
+    return 'View All Frameworks';
+  };
+
+  // Helper function to determine if end icon should be shown
+  const shouldShowEndIcon = () => {
+    return step < stepsLength;
+  };
+
+  // Helper function to determine if button should be disabled
+  const isButtonDisabled = () => {
+    if (isLoading) return true;
+    if (step === 1 && !channel?.code) return true;
+    if (step === 2 && !framework?.identifier) return true;
+    return false;
+  };
+
   switch (step) {
     case 6:
       return (
@@ -69,23 +89,17 @@ const StepperButton: React.FC<StepperButtonProps> = ({
       return (
         <Button
           onClick={onNext}
-          disabled={
-            (step === 1 && !channel?.code) ||
-            (step === 2 && !framework?.identifier) ||
-            isLoading
-          }
+          disabled={isButtonDisabled()}
           endIcon={
-            step < stepsLength ? <ArrowRightIcon fontSize="small" /> : undefined
+            shouldShowEndIcon() ? (
+              <ArrowRightIcon fontSize="small" />
+            ) : undefined
           }
           variant="contained"
           color="primary"
           sx={{ minWidth: 160, fontWeight: 600 }}
         >
-          {isLoading
-            ? 'Loading...'
-            : step < stepsLength
-            ? 'Continue'
-            : 'View All Frameworks'}
+          {getButtonText()}
         </Button>
       );
   }

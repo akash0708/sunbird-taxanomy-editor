@@ -41,9 +41,16 @@ const DashboardPage: React.FC = () => {
     // eslint-disable-next-line
   }, []);
 
-  const masterCategories = 12;
-  const totalCategories = 48;
-  const terms = 320;
+  // Calculate total categories from all frameworks
+  const totalCategories = frameworks.reduce((total, framework) => {
+    return total + (framework.categories ? framework.categories.length : 0);
+  }, 0);
+
+  // Calculate master categories (unique categories across frameworks)
+  const allCategories = frameworks.flatMap((framework) =>
+    framework.categories ? framework.categories.map((cat) => cat.name) : []
+  );
+  const masterCategories = new Set(allCategories).size;
 
   // Sort frameworks by lastUpdatedOn (descending)
   const sortedFrameworks = sortFrameworksByLastUpdated(frameworks);
@@ -110,6 +117,11 @@ const DashboardPage: React.FC = () => {
           }}
         >
           <StatCard
+            title="Total Channels"
+            value={channels.length.toString()}
+            IconComponent={DescriptionIcon}
+          />
+          <StatCard
             title="Total Frameworks"
             value={frameworks.length.toString()}
             IconComponent={LayersIcon}
@@ -124,11 +136,6 @@ const DashboardPage: React.FC = () => {
             value={totalCategories.toString()}
             IconComponent={DescriptionIcon}
           />
-          <StatCard
-            title="Terms"
-            value={terms.toString()}
-            IconComponent={DescriptionIcon}
-          />
         </Box>
 
         <Box
@@ -138,26 +145,6 @@ const DashboardPage: React.FC = () => {
             gap: 3,
           }}
         >
-          <RecentList
-            title="Recent Frameworks"
-            loading={fwLoading}
-            error={fwError ?? undefined}
-            items={recentFrameworks}
-            itemKey={(fw) => fw.identifier}
-            itemToProps={(fw) => ({
-              id: fw.identifier,
-              title: fw.name,
-              time: fw.lastUpdatedOn
-                ? new Date(fw.lastUpdatedOn).toLocaleString()
-                : 'Unknown',
-              status:
-                fw.status && fw.status.toLowerCase() === 'live'
-                  ? 'Published'
-                  : 'Draft',
-              user: fw.channel ?? 'Unknown',
-            })}
-            viewAllHref="/frameworks"
-          />
           <RecentList
             title="Recent Channels"
             loading={chLoading}
@@ -177,6 +164,26 @@ const DashboardPage: React.FC = () => {
               user: getChannelCode(ch),
             })}
             viewAllHref="/channels"
+          />
+          <RecentList
+            title="Recent Frameworks"
+            loading={fwLoading}
+            error={fwError ?? undefined}
+            items={recentFrameworks}
+            itemKey={(fw) => fw.identifier}
+            itemToProps={(fw) => ({
+              id: fw.identifier,
+              title: fw.name,
+              time: fw.lastUpdatedOn
+                ? new Date(fw.lastUpdatedOn).toLocaleString()
+                : 'Unknown',
+              status:
+                fw.status && fw.status.toLowerCase() === 'live'
+                  ? 'Published'
+                  : 'Draft',
+              user: fw.channel ?? 'Unknown',
+            })}
+            viewAllHref="/frameworks"
           />
         </Box>
       </Box>

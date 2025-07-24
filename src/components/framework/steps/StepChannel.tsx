@@ -16,6 +16,7 @@ const StepChannel: React.FC = () => {
   const channel = useFrameworkFormStore((state) => state.channel);
   const setChannel = useFrameworkFormStore((state) => state.setChannel);
   const { channels, loading, error, fetchChannels } = useChannelStore();
+  const router = useRouter();
 
   // Use normalizeChannels to ensure code property exists for selection
   const mappedChannels = normalizeChannels(channels);
@@ -26,12 +27,20 @@ const StepChannel: React.FC = () => {
     })),
     { label: 'Create New Channel', value: '__create__' },
   ];
-  const router = useRouter();
 
   React.useEffect(() => {
     fetchChannels();
     // eslint-disable-next-line
   }, []);
+
+  const handleChannelChange = (value: string) => {
+    if (value === '__create__') {
+      router.push('/channels/create?fromStepper=1');
+      return;
+    }
+    const selected = mappedChannels.find((ch) => ch.code === value);
+    if (selected) setChannel(selected);
+  };
 
   return (
     <Box sx={{ p: { xs: 0, md: 1 }, mb: 0 }}>
@@ -52,27 +61,28 @@ const StepChannel: React.FC = () => {
           Choose the channel for which you want to create the framework.
         </Typography>
       </Box>
-      {loading ? (
+
+      {/* Loading state */}
+      {loading && (
         <Box textAlign="center" py={4}>
           <CircularProgress />
         </Box>
-      ) : error ? (
+      )}
+
+      {/* Error state */}
+      {error && (
         <Alert severity="error" sx={{ textAlign: 'center', py: 2 }}>
           {error}
         </Alert>
-      ) : (
+      )}
+
+      {/* Success state */}
+      {!loading && !error && (
         <Box maxWidth={400}>
           <Dropdown
             label="Select Channel"
             value={channel?.code || ''}
-            onChange={(value) => {
-              if (value === '__create__') {
-                router.push('/channels/create?fromStepper=1');
-                return;
-              }
-              const selected = mappedChannels.find((ch) => ch.code === value);
-              if (selected) setChannel(selected);
-            }}
+            onChange={handleChannelChange}
             options={dropdownOptions}
             required
           />
