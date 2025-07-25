@@ -45,7 +45,11 @@ export function formatDate(date: Date | string) {
 
 // Converts a string to camelCase, removing non-alphanumeric separators and capitalizing the following letter.
 export function camelCaseCode(input: string): string {
-  const trimmed = input.trim().toLowerCase(); // Lowercase the entire string first
+  // Replace '&' with 'And'
+  const replaced = input.replace(/&/g, 'And');
+  // Remove all non-alphanumeric characters except spaces, dashes, and underscores for splitting
+  const cleaned = replaced.replace(/[^a-zA-Z0-9\s-_]+/g, '');
+  const trimmed = cleaned.trim().toLowerCase();
 
   return trimmed
     .split(/[-_\s]+/) // Split on any non-alphanumeric separator
@@ -56,10 +60,9 @@ export function camelCaseCode(input: string): string {
     .join('');
 }
 
-// Checks if a string is in camelCase format
+// Checks if a string is in camelCase format (starts with lowercase, only alphanumeric, no special characters)
 export function isCamelCase(input: string): boolean {
-  // CamelCase pattern: starts with lowercase letter, followed by alphanumeric characters
-  // with optional uppercase letters in between
+  // CamelCase pattern: starts with lowercase letter, followed by only alphanumeric characters (no special chars)
   const camelCasePattern = /^[a-z][a-zA-Z0-9]*$/;
   return camelCasePattern.test(input);
 }
@@ -157,7 +160,6 @@ export async function publishFramework(
     }
 
     const result = await response.text();
-    console.log('Publish result:', result);
     return result;
   } catch (error) {
     if (error instanceof Error) {

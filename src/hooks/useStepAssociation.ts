@@ -189,6 +189,27 @@ export const useStepAssociation = () => {
     const newTermCode = newCat?.terms?.[0]?.code ?? '';
     setSelectedTermCode(newTermCode);
 
+    // If in edit mode, load associations for the new term/category combination
+    if (editingTermCode || editingCategoryCode) {
+      const newTerm = newCat?.terms?.[0];
+      if (newTerm) {
+        // Load existing associations for this term
+        const newMap: CheckedTermCodesMap = {};
+        (newTerm.associations ?? []).forEach((assoc) => {
+          if (!newMap[assoc.category]) newMap[assoc.category] = [];
+          newMap[assoc.category].push(assoc.code);
+        });
+        setCheckedTermCodesMap(newMap);
+        setEditingTermCode(newTerm.code);
+        setEditingCategoryCode(newCatCode);
+      }
+    } else {
+      // Not in edit mode, clear edit state and checked terms
+      setEditingTermCode(null);
+      setEditingCategoryCode(null);
+      setCheckedTermCodesMap({});
+    }
+
     // Pick first available category that's not the selected one
     const firstAvailable =
       categoriesWithTerms.find((c) => c.code !== newCatCode)?.code ?? '';
@@ -205,20 +226,24 @@ export const useStepAssociation = () => {
       (t) => t.code === newTermCode
     );
 
-    // Only load existing associations if there are no current working associations
-    const hasCurrentAssociations = Object.values(checkedTermCodesMap).some(
-      (codes) => codes.length > 0
-    );
-
-    if (newTerm && !hasCurrentAssociations) {
-      // Load existing associations from database only if no current work exists
-      const newMap: CheckedTermCodesMap = {};
-      availableCategories.forEach((cat) => {
-        newMap[cat.code] = (newTerm.associations ?? [])
-          .filter((a) => a.category === cat.code)
-          .map((a) => a.code);
-      });
-      setCheckedTermCodesMap(newMap);
+    // If in edit mode, load associations for the new term
+    if (editingTermCode || editingCategoryCode) {
+      if (newTerm) {
+        // Load existing associations for this term
+        const newMap: CheckedTermCodesMap = {};
+        (newTerm.associations ?? []).forEach((assoc) => {
+          if (!newMap[assoc.category]) newMap[assoc.category] = [];
+          newMap[assoc.category].push(assoc.code);
+        });
+        setCheckedTermCodesMap(newMap);
+        setEditingTermCode(newTerm.code);
+        setEditingCategoryCode(selectedCategory?.code || null);
+      }
+    } else {
+      // Not in edit mode, clear edit state and checked terms
+      setEditingTermCode(null);
+      setEditingCategoryCode(null);
+      setCheckedTermCodesMap({});
     }
   };
 
@@ -284,6 +309,8 @@ export const useStepAssociation = () => {
     });
 
     setCheckedTermCodesMap({});
+    setEditingTermCode(null);
+    setEditingCategoryCode(null);
   };
 
   // Unified save handler - creates working associations from checked terms and saves all to backend
