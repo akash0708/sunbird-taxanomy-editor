@@ -2,7 +2,7 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
+import AlertMessage from '@/components/AlertMessage';
 import { MasterCategoryFormProps } from '@/interfaces/MasterCategoryInterface';
 
 // This component renders a form for creating a master category.
@@ -92,16 +92,8 @@ const MasterCategoryForm: React.FC<MasterCategoryFormProps> = ({
         minRows={2}
       />
     </Box>
-    {error && (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        {error}
-      </Alert>
-    )}
-    {success && (
-      <Alert severity="success" sx={{ mt: 2 }}>
-        {success}
-      </Alert>
-    )}
+    <AlertMessage severity="error" message={error ?? ''} sx={{ mt: 2 }} />
+    <AlertMessage severity="success" message={success ?? ''} sx={{ mt: 2 }} />
     <Button
       type="submit"
       variant="contained"

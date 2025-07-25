@@ -67,6 +67,41 @@ const StepTerms = forwardRef<StepTermsHandle, object>((props, ref) => {
   // Get all terms from all categories
   const allTerms = getAllTermsFromCategories(categories);
 
+  // --- Filtering by category ---
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
+    []
+  );
+  // Get unique category names from all terms
+  const categoryOptions = Array.from(
+    new Set(
+      allTerms.map(
+        (term) =>
+          (term.categoryName as string) ||
+          categories.find((cat) => cat.code === term.categoryCode)?.name ||
+          (term.categoryCode as string)
+      )
+    )
+  );
+  // Filter function for ListOfExistingItems
+  const filterByCategory = (
+    item: Record<string, unknown>,
+    selected: string[]
+  ) => {
+    const catName =
+      (item.categoryName as string) ||
+      categories.find((cat) => cat.code === item.categoryCode)?.name ||
+      (item.categoryCode as string);
+    return selected.length === 0 || selected.includes(catName);
+  };
+  // Handler for filter popover
+  const handleCategoryFilterChange = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
   // Reusable function to render term details - eliminates duplication
   const renderTermDetails = (term: Record<string, unknown>) => (
     <>
@@ -130,6 +165,12 @@ const StepTerms = forwardRef<StepTermsHandle, object>((props, ref) => {
         editIconTooltip="Edit Term"
         maxHeight={200}
         emptyText="No terms available."
+        filterEnabled={true}
+        filterOptions={categoryOptions}
+        selectedFilters={selectedCategories}
+        onFilterChange={handleCategoryFilterChange}
+        filterTitle="Filter by Category"
+        filterFunction={filterByCategory}
       />
 
       {/* Add/Edit Term Form */}

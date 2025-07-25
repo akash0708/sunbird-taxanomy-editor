@@ -6,6 +6,7 @@ import ListItem from '@mui/material/ListItem';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
+import FilterPopover from '@/components/FilterPopover';
 
 interface ListOfExistingItemsProps {
   title: string;
@@ -15,6 +16,15 @@ interface ListOfExistingItemsProps {
   editIconTooltip?: string;
   maxHeight?: number;
   emptyText?: string;
+  filterEnabled?: boolean;
+  filterOptions?: string[];
+  selectedFilters?: string[];
+  onFilterChange?: (filter: string) => void;
+  filterTitle?: string;
+  filterFunction?: (
+    item: Record<string, unknown>,
+    selectedFilters: string[]
+  ) => boolean;
 }
 
 const ListOfExistingItems: React.FC<ListOfExistingItemsProps> = ({
@@ -25,7 +35,25 @@ const ListOfExistingItems: React.FC<ListOfExistingItemsProps> = ({
   editIconTooltip,
   maxHeight = 200,
   emptyText = 'No items available.',
+  filterEnabled = false,
+  filterOptions = [],
+  selectedFilters = [],
+  onFilterChange,
+  filterTitle = 'Filter',
+  filterFunction,
 }) => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const handleFilterButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleFilterClose = () => {
+    setAnchorEl(null);
+  };
+  // Filter items if filter is enabled and filterFunction is provided
+  const filteredItems =
+    filterEnabled && filterFunction && selectedFilters.length > 0
+      ? items.filter((item) => filterFunction(item, selectedFilters))
+      : items;
   return (
     <Box
       sx={{
@@ -37,25 +65,61 @@ const ListOfExistingItems: React.FC<ListOfExistingItemsProps> = ({
         mb: 4,
       }}
     >
-      <Typography
-        variant="subtitle2"
-        fontWeight={700}
+      <Box
         sx={{
-          textTransform: 'uppercase',
-          color: 'text.secondary',
-          fontSize: 15,
-          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        {title}
-      </Typography>
+        <Typography
+          variant="subtitle2"
+          fontWeight={700}
+          sx={{
+            textTransform: 'uppercase',
+            color: 'text.secondary',
+            fontSize: 15,
+            p: 2,
+          }}
+        >
+          {title}
+        </Typography>
+        {filterEnabled && (
+          <IconButton
+            size="small"
+            onClick={handleFilterButtonClick}
+            sx={{ mr: 2 }}
+            title={filterTitle}
+          >
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+              <path
+                d="M3 5h18M6 10h12M10 15h4"
+                stroke="#888"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </IconButton>
+        )}
+        {filterEnabled && (
+          <FilterPopover
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleFilterClose}
+            selectedStatus={selectedFilters}
+            onStatusChange={onFilterChange || (() => {})}
+            statusOptions={filterOptions}
+            filterTitle={filterTitle}
+          />
+        )}
+      </Box>
       <List disablePadding>
-        {items.length === 0 ? (
+        {filteredItems.length === 0 ? (
           <Typography color="text.secondary" align="center" sx={{ py: 3 }}>
             {emptyText}
           </Typography>
         ) : (
-          items.map((item, idx) => (
+          filteredItems.map((item, idx) => (
             <React.Fragment key={String(item.identifier || idx)}>
               <ListItem
                 alignItems="flex-start"
@@ -81,7 +145,7 @@ const ListOfExistingItems: React.FC<ListOfExistingItemsProps> = ({
                   )}
                 </Box>
               </ListItem>
-              {idx < items.length - 1 && <Divider />}
+              {idx < filteredItems.length - 1 && <Divider />}
             </React.Fragment>
           ))
         )}

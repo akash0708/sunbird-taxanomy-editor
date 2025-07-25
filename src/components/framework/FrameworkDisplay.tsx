@@ -14,7 +14,7 @@ import {
 } from '@/services/categoryService';
 import OverviewCard from '@/components/framework/OverviewCard';
 import CategoryCard from '@/components/framework/CategoryCard';
-import NoData from '@/components/framework/NoData';
+import NoData from '@/components/NoData';
 import type { Category } from '@/interfaces/CategoryInterface';
 
 interface FrameworkDisplayProps {

@@ -71,7 +71,7 @@ const FrameworkItem: React.FC<{ framework: Framework }> = ({ framework }) => (
           variant="outlined"
           size="small"
           component={Link}
-          href={`/frameworks/${framework.identifier}/edit`}
+          href={`/frameworks/manage?edit=1&id=${framework.identifier}`}
           sx={{ minWidth: 80 }}
         >
           Edit

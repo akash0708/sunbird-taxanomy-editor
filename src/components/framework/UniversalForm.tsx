@@ -7,7 +7,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import Alert from '@mui/material/Alert';
+import AlertMessage from '@/components/AlertMessage';
 
 /**
  * UniversalForm - A single, configurable form component that replaces multiple form components
@@ -169,16 +169,12 @@ const UniversalForm: React.FC<UniversalFormProps> = ({
         </Box>
 
         {/* Error/Success Messages */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {success}
-          </Alert>
-        )}
+        <AlertMessage severity="error" message={error ?? ''} sx={{ mb: 2 }} />
+        <AlertMessage
+          severity="success"
+          message={success ?? ''}
+          sx={{ mb: 2 }}
+        />
       </form>
     </Box>
   );

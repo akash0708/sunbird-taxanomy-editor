@@ -1,10 +1,10 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import { BaseFormProps } from '@/interfaces/BaseInterface';
+import AlertMessage from '@/components/AlertMessage';
 
 /**
  * BaseForm component is a reusable form layout that includes a header, fields, and a submit button.
@@ -91,16 +91,12 @@ const BaseForm: React.FC<
           </Typography>
         )}
         {fields}
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            {success}
-          </Alert>
-        )}
+        <AlertMessage severity="error" message={error ?? ''} sx={{ mt: 2 }} />
+        <AlertMessage
+          severity="success"
+          message={success ?? ''}
+          sx={{ mt: 2 }}
+        />
       </Box>
       {/* Footer Section */}
       <Divider sx={{ mt: 2, mb: 0 }} />

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ArrowLeft as ArrowLeftIcon } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -13,7 +13,6 @@ import PageLayout from '@/components/layout/PageLayout';
 import { StepMasterCategoryHandle } from '@/interfaces/MasterCategoryInterface';
 import type { StepCategoryHandle } from '@/interfaces/CategoryInterface';
 import type { StepTermsHandle } from '@/interfaces/TermInterface';
-import Alert from '@mui/material/Alert';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -24,6 +23,9 @@ import type { StepAssociationHandle } from '@/interfaces/AssociationInterface';
 import StepperButton from '@/components/framework/StepperButton';
 import { useStepManager } from '@/hooks/useStepManager';
 import StepRenderer from '@/components/framework/StepRenderer';
+import AlertMessage from '@/components/AlertMessage';
+import { useRouter } from 'next/router';
+import frameworkService from '@/services/frameworkService';
 
 // This component manages the taxonomy creation process through a series of steps.
 // It allows users to select a channel, framework, master categories, categories, terms, and associations,
@@ -41,7 +43,26 @@ const steps = [
 // Controller for managing the taxonomy creation process.
 // Now uses extracted hook and component for better maintainability.
 const ManageTaxonomy: React.FC = () => {
-  const { channel, framework } = useFrameworkFormStore();
+  // Step 1: Access Next.js router to read query parameters
+  const router = useRouter();
+  const { edit, id } = router.query;
+  // Destructure both state and actions from the store
+  const { channel, framework, setStep, setFramework, setCategories } =
+    useFrameworkFormStore();
+
+  useEffect(() => {
+    // Step 2: If in edit mode and id is present, set step to 4 and fetch data
+    if (edit === '1' && typeof id === 'string') {
+      setStep(4); // Step 4 is Categories
+      // Fetch framework data and populate store
+      frameworkService.getFrameworkById(id).then((data) => {
+        if (data) {
+          setFramework(data);
+          setCategories(data.categories || []);
+        }
+      });
+    }
+  }, [edit, id, setStep, setFramework, setCategories]);
 
   // Refs for step components
   const masterCategoryRef = useRef<StepMasterCategoryHandle>(null);
@@ -133,11 +154,11 @@ const ManageTaxonomy: React.FC = () => {
             ))}
           </Stepper>
 
-          {fetchError && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {fetchError}
-            </Alert>
-          )}
+          <AlertMessage
+            severity="error"
+            message={fetchError ?? ''}
+            sx={{ mb: 3 }}
+          />
 
           <Card sx={{ borderRadius: 3, boxShadow: 2, mb: 4 }}>
             <CardHeader
