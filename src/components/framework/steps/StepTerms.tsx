@@ -76,9 +76,9 @@ const StepTerms = forwardRef<StepTermsHandle, object>((props, ref) => {
     new Set(
       allTerms.map(
         (term) =>
-          (term.categoryName as string) ||
+          term.categoryName ||
           categories.find((cat) => cat.code === term.categoryCode)?.name ||
-          (term.categoryCode as string)
+          term.categoryCode
       )
     )
   );
