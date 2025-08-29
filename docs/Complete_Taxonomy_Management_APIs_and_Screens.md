@@ -540,6 +540,52 @@ POST /framework/v3/term/create?framework={frameworkCode}&category={categoryCode}
 ![Associations Preview](images/16.png)
 ![Associations Create](images/17.png)
 
+#### Understanding Taxonomy Hierarchy and Association Flow
+
+The taxonomy follows a strict hierarchical structure where associations must be created from top to bottom levels:
+
+**Hierarchy Order:**
+
+1. **Board** (Top level)
+2. **Medium**
+3. **Grade Level**
+4. **Subject** (Bottom level)
+
+**Association Workflow:**
+
+The `associations` attribute creates relationships from higher-level terms to lower-level terms in the hierarchy. Here's how to structure the associations:
+
+1. **Board Terms** → Associate to all terms from Medium, Grade Level, and Subject categories
+2. **Medium Terms** → Associate to terms from Grade Level and Subject categories
+3. **Grade Level Terms** → Associate to terms from Subject category
+4. **Subject Terms** → No associations needed (bottom of hierarchy)
+
+**Example Association Flow:**
+
+```
+Board: CBSE
+├── associations → [English, Hindi] (Medium)
+├── associations → [Class 10, Class 12] (Grade Level)
+└── associations → [Mathematics, Science, History] (Subject)
+
+Medium: English
+├── associations → [Class 10, Class 12] (Grade Level)
+└── associations → [Mathematics, Science] (Subject)
+
+Grade Level: Class 10
+└── associations → [Mathematics, Science, History] (Subject)
+
+Subject: Mathematics
+└── No associations (bottom level)
+```
+
+**Important Notes:**
+
+- Always associate from higher levels to lower levels in the hierarchy
+- Each term should associate to all relevant terms in categories below it
+- The hierarchy ensures proper filtering and relationship mapping in the system
+- Associations create the logical connections that enable content discovery and categorization
+
 **API Calls:**
 
 **Update Term with Associations:**
@@ -548,17 +594,52 @@ POST /framework/v3/term/create?framework={frameworkCode}&category={categoryCode}
 PATCH /framework/v3/term/update/{termCode}?framework={frameworkCode}&category={categoryCode}
 ```
 
-**Payload (GradeLevel - Class 10 Associations Example):**
+**Hierarchical Association Examples:**
+
+**1. Board Level - CBSE (Top Level):**
 
 ```json
 {
   "request": {
     "term": {
-      "associationswith": [
+      "associations": [
         { "identifier": "vidyaFramework_medium_english" },
         { "identifier": "vidyaFramework_medium_hindi" },
-        { "identifier": "vidyaFramework_board_cbse" }
-      ],
+        { "identifier": "vidyaFramework_gradeLevel_class10" },
+        { "identifier": "vidyaFramework_gradeLevel_class12" },
+        { "identifier": "vidyaFramework_subject_mathematics" },
+        { "identifier": "vidyaFramework_subject_science" },
+        { "identifier": "vidyaFramework_subject_history" }
+      ]
+    }
+  }
+}
+```
+
+**2. Medium Level - English:**
+
+```json
+{
+  "request": {
+    "term": {
+      "associations": [
+        { "identifier": "vidyaFramework_gradeLevel_class10" },
+        { "identifier": "vidyaFramework_gradeLevel_class12" },
+        { "identifier": "vidyaFramework_subject_mathematics" },
+        { "identifier": "vidyaFramework_subject_science" },
+        { "identifier": "vidyaFramework_subject_history" }
+      ]
+    }
+  }
+}
+```
+
+**3. Grade Level - Class 10:**
+
+```json
+{
+  "request": {
+    "term": {
       "associations": [
         { "identifier": "vidyaFramework_subject_mathematics" },
         { "identifier": "vidyaFramework_subject_science" },
@@ -569,37 +650,9 @@ PATCH /framework/v3/term/update/{termCode}?framework={frameworkCode}&category={c
 }
 ```
 
-**Additional Association Examples:**
+**4. Subject Level - Mathematics (Bottom Level)**
 
-```json
-// Medium - English Associations
-{
-  "request": {
-    "term": {
-      "associationswith": [
-        { "identifier": "vidyaFramework_board_cbse" }
-      ],
-      "associations": [
-        { "identifier": "vidyaFramework_gradeLevel_class10" },
-        { "identifier": "vidyaFramework_subject_mathematics" }
-      ]
-    }
-  }
-}
-
-// Board - CBSE Associations
-{
-  "request": {
-    "term": {
-      "associations": [
-        { "identifier": "vidyaFramework_medium_english" },
-        { "identifier": "vidyaFramework_medium_hindi" },
-        { "identifier": "vidyaFramework_gradeLevel_class10" }
-      ]
-    }
-  }
-}
-```
+_Note: Subject level terms typically don't have associations as they are at the bottom of the hierarchy._
 
 ### Step 7: Publishing and Framework View
 
@@ -640,6 +693,18 @@ Content-Type: application/json
 ```bash
 GET /framework/v3/read/{frameworkCode}
 ```
+
+**Automatic Processes:**
+
+- **Publishing**: All changes are automatically published when associations are saved
+- **Framework Update**: The complete framework structure is updated
+- **Primary View**: Users are presented with a comprehensive view of all framework elements
+
+**Final View Features:**
+
+- Complete categories, terms, and associations in sortable tables
+- Easy navigation between different framework elements
+- Quick access to return to framework overview
 
 ---
 

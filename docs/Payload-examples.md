@@ -200,7 +200,64 @@ Response returns framework details with all categories.
 
 ---
 
-### 5.2 Update Term (Associations Example: GradeLevel – Class 10)
+### 5.2 Update Term (Associations)
+
+#### Understanding Taxonomy Hierarchy
+
+The taxonomy follows a strict hierarchical structure where associations must be created from top to bottom levels:
+
+**Hierarchy Order:**
+
+1. **Board** (Top level) → Associates to Medium, Grade Level, and Subject
+2. **Medium** → Associates to Grade Level and Subject
+3. **Grade Level** → Associates to Subject
+4. **Subject** (Bottom level) → No associations needed
+
+#### Association Examples by Hierarchy Level
+
+**Board Level - CBSE (Associates to all lower levels):**
+
+**PATCH** `/framework/v3/term/update/cbse?framework=vidyaFramework&category=board`
+
+```json
+{
+  "request": {
+    "term": {
+      "associations": [
+        { "identifier": "vidyaFramework_medium_english" },
+        { "identifier": "vidyaFramework_medium_hindi" },
+        { "identifier": "vidyaFramework_gradeLevel_class10" },
+        { "identifier": "vidyaFramework_gradeLevel_class12" },
+        { "identifier": "vidyaFramework_subject_mathematics" },
+        { "identifier": "vidyaFramework_subject_science" },
+        { "identifier": "vidyaFramework_subject_history" }
+      ]
+    }
+  }
+}
+```
+
+**Medium Level - English (Associates to Grade Level and Subject):**
+
+**PATCH** `/framework/v3/term/update/english?framework=vidyaFramework&category=medium`
+
+```json
+{
+  "request": {
+    "term": {
+      "associations": [
+        { "identifier": "vidyaFramework_gradeLevel_class10" },
+        { "identifier": "vidyaFramework_gradeLevel_class12" },
+        { "identifier": "vidyaFramework_subject_mathematics" },
+        { "identifier": "vidyaFramework_subject_science" },
+        { "identifier": "vidyaFramework_subject_history" }
+      ]
+    }
+  }
+}
+```
+
+**Grade Level - Class 10 (Associates to Subject only):**
 
 **PATCH** `/framework/v3/term/update/class10?framework=vidyaFramework&category=gradeLevel`
 
@@ -208,11 +265,6 @@ Response returns framework details with all categories.
 {
   "request": {
     "term": {
-      "associationswith": [
-        { "identifier": "vidyaFramework_medium_english" },
-        { "identifier": "vidyaFramework_medium_hindi" },
-        { "identifier": "vidyaFramework_board_cbse" }
-      ],
       "associations": [
         { "identifier": "vidyaFramework_subject_mathematics" },
         { "identifier": "vidyaFramework_subject_science" },
@@ -223,7 +275,14 @@ Response returns framework details with all categories.
 }
 ```
 
-(Similar for **Medium-English**, **Medium-Hindi**, **Board-CBSE**.)
+**Subject Level - Mathematics (Bottom level, no associations)**
+
+**Important Notes:**
+
+- Always create associations from higher hierarchy levels to lower levels
+- Each term associates to all relevant terms in categories below it in the hierarchy
+- Subject terms (bottom level) typically don't need associations
+- This hierarchy ensures proper content filtering and discovery in the system
 
 ---
 
